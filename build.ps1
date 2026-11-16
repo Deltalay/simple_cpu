@@ -14,7 +14,7 @@ nextpnr-himbaechel `
     --device GW1NR-LV9QN88PC6/I5 `
     --vopt family=GW1N-9C `
     --vopt cst=cpu.cst `
-    --freq 2 --report timing.json --detailed-timing-report -q
+    --freq 2 --report timing.json --detailed-timing-report 
 
 
 gowin_pack `

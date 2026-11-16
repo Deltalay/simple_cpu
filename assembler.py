@@ -12,6 +12,7 @@ OPCODES = {
     "STRID": 0b000101,
     "ADD": 0b001010,
     "SUB": 0b001011,
+    "MUL": 0b001100,
     "SLI": 0b010000,
     "SRI": 0b010001,
     "SHL": 0b010010,
@@ -163,13 +164,7 @@ def assemble_instruction(mnemonic, operands, labels):
 
     opcode = OPCODES[mnemonic]
 
-    if mnemonic in (
-        "NOP",
-        "CLZ",
-        "CLN",
-        "CLO",
-        "RET"
-    ):
+    if mnemonic in ("NOP", "CLZ", "CLN", "CLO", "RET"):
         if operands:
             raise ValueError(f"{mnemonic} takes no operands")
 
