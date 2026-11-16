@@ -10,6 +10,9 @@ module top(
     reg[7:0] registers [0:3];
     localparam PROGRAM_SIZE = 256;
     localparam MEMORY_SIZE = 128;
+    localparam STACK_SIZE = 64;
+    reg[7:0] STACK[0:STACK_SIZE];
+    reg [6:0] SP;
     localparam CPU_FETCH           = 2'b00;
     localparam CPU_FETCH_WAIT      = 2'b01;
     localparam CPU_MEMORY_LOAD_REG = 2'b10;
@@ -74,10 +77,17 @@ module top(
     localparam CLZ = 6'b101001;
     localparam CLO = 6'b101010;
 
+    localparam CALL = 6'b101110;
+    localparam RET = 6'b101111;
+    localparam PUSH = 6'b110000;
+    localparam POP = 6'b110001;
+
     assign opcode = instruction[15:10];
     assign rd = instruction[9:8];
     assign rs = instruction[1:0];
     assign immediate = instruction[7:0];
+
+
 
     reg[3:0] clockCounter = 0;
     localparam [3:0]clock = 13;
@@ -107,6 +117,7 @@ module top(
             registers[3] <= 0;
             zero_flag <= 0;
             negative_flag<= 0;
+            SP <= 0;
             overflow_flag<=0;
             CPU_STATE <= CPU_FETCH;
         end
@@ -296,6 +307,34 @@ module top(
                                 PC <= PC + 1;
                                 CPU_STATE <= CPU_FETCH;
 
+                            end
+                            CALL: begin
+              
+                                STACK[SP] <= PC + 1;
+                                SP <= SP + 1;
+                                PC <=immediate;
+                                CPU_STATE <= CPU_FETCH;
+                            end
+                            RET: begin
+                          
+                                PC <= STACK[SP-1];
+                                SP <= SP - 1;
+                                CPU_STATE <= CPU_FETCH;
+                            end
+                            PUSH: begin
+                          
+                                STACK[SP] <= registers[rd];
+                                SP <= SP + 1;
+                                PC <= PC + 1;
+                                CPU_STATE <= CPU_FETCH;
+                                
+                            end
+                            POP: begin
+                             
+                                registers[rd] <= STACK[SP-1];
+                                SP <= SP - 1;
+                                PC <= PC + 1;
+                                CPU_STATE <= CPU_FETCH;
                             end
                             default: begin
                             PC <= PC + 1;

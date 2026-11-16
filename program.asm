@@ -1,25 +1,16 @@
+
 start:
     LDI r0, 0x01
     LDI r2, 0x00
     STR r2, 0x01
     LDI r2, 0x01
+
 loop:
     STR r0, 255
-    LDI r3, 0xFF
-    LDI r1, 0xFF
-    LDI r2, 0x01
-delay:
-    LDI r2, 0x01
-    SUB r1, r2
-    JZ delay2
-    JMP delay
 
-delay2:
-    LDI r2, 1
-    SUB r3, r2
-    JZ direction_check
-    LDI r1, 0xFF
-    JMP delay
+    PUSH r1
+    CALL delay
+    POP r1
 
 direction_check:
     LDM r2, 0x01
@@ -42,7 +33,7 @@ turn_reverse:
 
 reverse:
     SRI r0, 1
-    
+
     LDI r1, 0x01
     CMP r0, r1
     JZ turn_forward
@@ -52,3 +43,26 @@ turn_forward:
     LDI r2, 0
     STR r2, 0x01
     JMP loop
+
+
+; Delay subroutine
+delay:
+    LDI r3, 0xFF
+    LDI r1, 0xFF
+
+delay_loop:
+    LDI r2, 0x01
+    SUB r1, r2
+    JZ delay_outer
+    JMP delay_loop
+
+delay_outer:
+    LDI r2, 0x01
+    SUB r3, r2
+    JZ delay_done
+
+    LDI r1, 0xFF
+    JMP delay_loop
+
+delay_done:
+    RET

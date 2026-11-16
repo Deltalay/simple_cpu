@@ -28,6 +28,10 @@ OPCODES = {
     "CLN": 0b101000,
     "CLZ": 0b101001,
     "CLO": 0b101010,
+    "CALL": 0b101110,
+    "RET": 0b101111,
+    "PUSH": 0b110000,
+    "POP": 0b110001,
 }
 REGISTERS = {
     "r0": 0,
@@ -59,7 +63,7 @@ def remove_comment(line):
     line = line.split(";", 1)[0]
     line = line.split("#", 1)[0]
     line = line.split("/", 1)[0]
-    
+
     return line.strip()
 
 
@@ -164,12 +168,13 @@ def assemble_instruction(mnemonic, operands, labels):
         "CLZ",
         "CLN",
         "CLO",
+        "RET"
     ):
         if operands:
             raise ValueError(f"{mnemonic} takes no operands")
 
         return [opcode << 2, 0]
-    if mnemonic in ("NOT"):
+    if mnemonic in ("NOT", "POP", "PUSH"):
         if len(operands) != 1:
             raise ValueError(f"{mnemonic} takes no operands")
 
@@ -257,7 +262,7 @@ def assemble_instruction(mnemonic, operands, labels):
 
         return [byte0, byte1]
 
-    if mnemonic in ("JMP", "JZ", "JN", "JO"):
+    if mnemonic in ("JMP", "JZ", "JN", "JO", "CALL"):
         if len(operands) != 1:
             raise ValueError(f"{mnemonic} requires: {mnemonic} address")
 
