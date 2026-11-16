@@ -1,5 +1,6 @@
 module s_memory #(
-    parameter DEPTH = 64
+    parameter DEPTH = 8'd64,
+    parameter LED_ADDR = 16'hFF
 )(
     input clk,
     input write_en,
@@ -11,14 +12,30 @@ module s_memory #(
     output reg[7:0] r_data
 );
 reg [7:0] memory[0:DEPTH-1];
+reg [7:0] led_reg;
 always @(posedge clk) begin
-    if (write_en == 1'b1) begin
-        memory[w_addr] <= w_data;
+    if (write_en) begin
+        if (w_addr == LED_ADDR) begin
+            led_reg <= w_data;
+        end
+        else if (w_addr < DEPTH) begin
+            memory[w_addr] <= w_data;
+        end
     end
-    if (read_en == 1'b1) begin
-        r_data <= memory[r_addr];
+
+    if (read_en) begin
+        if (r_addr == LED_ADDR) begin
+            r_data <= led_reg;
+        end
+        else if (r_addr < DEPTH) begin
+            r_data <= memory[r_addr];
+        end
+        else begin
+            r_data <= 8'h00;
+        end
     end
 end
-assign led_byte = memory[DEPTH-1][5:0];
+assign led_byte = led_reg[5:0];
+
 
 endmodule

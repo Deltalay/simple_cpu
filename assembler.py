@@ -6,28 +6,28 @@ FLASH_SIZE = 256
 OPCODES = {
     "NOP": 0b000000,
     "LDI": 0b000001,
-    "SUB": 0b000010,
-    "ADD": 0b000011,
-    "SLI": 0b000100,
-    "SRI": 0b000101,
-    "SHL": 0b000110,
-    "SHR": 0b000111,
-    "LDM": 0b100001,
-    "STR": 0b100010,
-    "LDID": 0b100011,
-    "STRID": 0b100100,
-    "JMP": 0b001011,
-    "JZ": 0b001100,
-    "JN": 0b001101,
-    "JO": 0b001110,
-    "CLN": 0b110000,
-    "CLZ": 0b110001,
-    "CLO": 0b110010,
-    "CMP": 0b101110,
-    "AND": 0b001000,
-    "OR": 0b001001,
-    "XOR": 0b001010,
+    "LDM": 0b000010,
+    "STR": 0b000011,
+    "LDID": 0b000100,
+    "STRID": 0b000101,
+    "ADD": 0b001010,
+    "SUB": 0b001011,
+    "SLI": 0b010000,
+    "SRI": 0b010001,
+    "SHL": 0b010010,
+    "SHR": 0b010011,
+    "AND": 0b011000,
+    "OR": 0b011001,
+    "XOR": 0b011010,
     "NOT": 0b011011,
+    "JMP": 0b100000,
+    "JZ": 0b100001,
+    "JN": 0b100010,
+    "JO": 0b100011,
+    "CMP": 0b100110,
+    "CLN": 0b101000,
+    "CLZ": 0b101001,
+    "CLO": 0b101010,
 }
 REGISTERS = {
     "r0": 0,
@@ -58,6 +58,8 @@ def parse_register(value):
 def remove_comment(line):
     line = line.split(";", 1)[0]
     line = line.split("#", 1)[0]
+    line = line.split("/", 1)[0]
+    
     return line.strip()
 
 

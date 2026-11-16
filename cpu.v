@@ -9,7 +9,7 @@ module top(
 
     reg[7:0] registers [0:3];
     localparam PROGRAM_SIZE = 256;
-    localparam MEMORY_SIZE = 256;
+    localparam MEMORY_SIZE = 128;
     localparam CPU_FETCH           = 2'b00;
     localparam CPU_FETCH_WAIT      = 2'b01;
     localparam CPU_MEMORY_LOAD_REG = 2'b10;
@@ -45,41 +45,42 @@ module top(
 
     localparam NOP = 6'b000000;
     localparam LDI = 6'b000001;
-    localparam LDM = 6'b100001;
-    localparam STR = 6'b100010;
-    localparam LDID = 6'b100011;
-    localparam STRID = 6'b100100;
+    localparam LDM = 6'b000010;
+    localparam STR = 6'b000011;
+    localparam LDID = 6'b000100;
+    localparam STRID = 6'b000101;
 
-    localparam ADD = 6'b000011;
-    localparam SUB = 6'b000010;
-    localparam SLI = 6'b000100;
-    localparam SRI = 6'b000101;
-    localparam SHL = 6'b000110;
-    localparam SHR = 6'b000111;
+    localparam ADD = 6'b001010;
+    localparam SUB = 6'b001011;
 
-    localparam AND = 6'b001000;
-    localparam OR = 6'b001001;
-    localparam XOR = 6'b001010;
+    localparam SLI = 6'b010000;
+    localparam SRI = 6'b010001;
+    localparam SHL = 6'b010010;
+    localparam SHR = 6'b010011;
+
+    localparam AND = 6'b011000;
+    localparam OR = 6'b011001;
+    localparam XOR = 6'b011010;
     localparam NOT = 6'b011011;
 
-    localparam JMP = 6'b001011;
-    localparam JZ = 6'b001100;
-    localparam JN = 6'b001101;
-    localparam JO = 6'b001110;
+    localparam JMP = 6'b100000;
+    localparam JZ = 6'b100001;
+    localparam JN = 6'b100010;
+    localparam JO = 6'b100011;
 
-    localparam CMP = 6'b101110;
+    localparam CMP = 6'b100110;
 
-    localparam CLN = 6'b110000;
-    localparam CLZ = 6'b110001;
-    localparam CLO = 6'b110010;
+    localparam CLN = 6'b101000;
+    localparam CLZ = 6'b101001;
+    localparam CLO = 6'b101010;
 
     assign opcode = instruction[15:10];
     assign rd = instruction[9:8];
     assign rs = instruction[1:0];
     assign immediate = instruction[7:0];
 
-    reg[16:0] clockCounter = 0;
-    localparam [16:0]clock = 100000;
+    reg[3:0] clockCounter = 0;
+    localparam [3:0]clock = 13;
     s_memory #(
     	.DEPTH(MEMORY_SIZE)
         ) memory (
@@ -178,7 +179,7 @@ module top(
                             end
                             SLI: begin
                                 registers[rd] <= registers[rd] << immediate;
-                                if (((registers[rd] << immediate) >> immediate) != registers[rd]) overflow_flag <= 1;
+                                overflow_flag <= (((registers[rd] << immediate) >> immediate) != registers[rd]);
                                 PC <= PC + 1;
                                 CPU_STATE <= CPU_FETCH;
 
@@ -186,7 +187,7 @@ module top(
                             SRI: begin
 
                                 registers[rd] <= registers[rd] >> immediate;
-                                if (((registers[rd] >> immediate) << immediate) != registers[rd]) overflow_flag <= 1;
+                                overflow_flag <= (((registers[rd] >> immediate) << immediate) != registers[rd]);
                                 PC <= PC + 1;
                                 CPU_STATE <= CPU_FETCH;
 
