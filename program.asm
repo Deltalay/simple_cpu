@@ -47,7 +47,7 @@ turn_forward:
 
 ; Delay subroutine
 delay:
-    LDI r3, 0xFF
+    LDI r3, 0xBF
     LDI r1, 0xFF
 
 delay_loop:

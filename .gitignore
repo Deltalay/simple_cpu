@@ -5,3 +5,4 @@ simple_cpu.v
 *.vcd
 program.asm.bin
 *.fs
+test*

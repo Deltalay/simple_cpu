@@ -245,7 +245,7 @@ def assemble_instruction(mnemonic, operands, labels):
         byte0 = (opcode << 2) | rd
 
         return [byte0, address]
-    if mnemonic in ("ADD", "SUB", "SHL", "SHR", "CMP"):
+    if mnemonic in ("ADD", "SUB", "SHL", "SHR", "CMP", "MUL"):
         if len(operands) != 2:
             raise ValueError(f"{mnemonic} requires: {mnemonic} rd, rs")
 
