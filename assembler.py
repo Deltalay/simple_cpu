@@ -8,6 +8,8 @@ OPCODES = {
     "LDI": 0b000001,
     "LDM": 0b000010,
     "STR": 0b000011,
+    "LDMW": 0b000110,
+    "STRW": 0b000111,
     "LDID": 0b000100,
     "STRID": 0b000101,
     "ADD": 0b001010,
@@ -144,6 +146,13 @@ def resolve_register(value):
     return parse_register(value)
 
 
+def resolve_16bit(value):
+    value = value.strip()
+    value_high = value[1:3]
+    value_low = value[4:6]
+    return (parse_register(value_high), parse_register(value_low))
+
+
 def resolve_value(value, labels):
     value = value.strip()
 
@@ -169,6 +178,14 @@ def assemble_instruction(mnemonic, operands, labels):
             raise ValueError(f"{mnemonic} takes no operands")
 
         return [opcode << 2, 0]
+    if mnemonic in ("LDMW", "STRW"):
+        if len(operands) != 2:
+            raise ValueError(f"{mnemonic} requires: {mnemonic} rd, [rsH:rs]")
+        rsH, rsL = resolve_16bit(operands[1])
+        rd = parse_register(operands[0])
+        rs = rsH << 2 | rsL
+        byte0 = (opcode << 2) | rd
+        return [byte0, rs]
     if mnemonic in ("NOT", "POP", "PUSH"):
         if len(operands) != 1:
             raise ValueError(f"{mnemonic} takes no operands")

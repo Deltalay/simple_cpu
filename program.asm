@@ -1,5 +1,9 @@
 
 start:
+    LDI r1, 0x01
+    LDI r2, 0x02
+    LDMW r3, [r1:r2]
+    STRW r3, [r1:r2]
     LDI r0, 0x01
     LDI r2, 0x00
     STR r2, 0x01

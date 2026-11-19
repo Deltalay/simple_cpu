@@ -5,8 +5,8 @@ module s_memory #(
     input clk,
     input write_en,
     input read_en,
-    input [7:0] w_addr,
-    input [7:0] r_addr,
+    input [15:0] w_addr,
+    input [15:0] r_addr,
     input [7:0] w_data,
     output     [5:0]  led_byte,
     output reg[7:0] r_data

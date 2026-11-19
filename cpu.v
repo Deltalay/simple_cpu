@@ -36,14 +36,16 @@ module top(
     );
     reg mem_write_en = 1;
     reg mem_read_en = 1;
-    reg [7:0] memory_write_addr;
-    reg [7:0] memory_read_addr;
+    reg [15:0] memory_write_addr;
+    reg [15:0] memory_read_addr;
     reg [7:0] memory_write_data;
     wire [5:0] led_direct;
     reg [7:0] memory_read_data;
     wire [5:0] opcode;
     wire [1:0] rd;
     wire [1:0] rs;
+    wire [1:0] rsH;
+
     wire [7:0] immediate;
 
     localparam NOP = 6'b000000;
@@ -52,6 +54,8 @@ module top(
     localparam STR = 6'b000011;
     localparam LDID = 6'b000100;
     localparam STRID = 6'b000101;
+    localparam LDMW = 6'b000110;
+    localparam STRW = 6'b000111;
 
     localparam ADD = 6'b001010;
     localparam SUB = 6'b001011;
@@ -86,13 +90,14 @@ module top(
     assign opcode = instruction[15:10];
     assign rd = instruction[9:8];
     assign rs = instruction[1:0];
+    assign rsH = instruction[3:2];
     assign immediate = instruction[7:0];
 
 
     reg [15:0] result = 0;
 
     reg[3:0] clockCounter = 0;
-    localparam [3:0]clock = 13;
+    localparam [3:0]clock = 4;
     s_memory #(
     	.DEPTH(MEMORY_SIZE)
         ) memory (
@@ -150,37 +155,49 @@ module top(
                             end
                             LDM: begin
                                 mem_read_en <= 1;
-                                memory_read_addr <= immediate;
+                                memory_read_addr <= {8'h00, immediate};
                                 CPU_STATE <= CPU_MEMORY_LOAD_REG;
                             end
                             STR: begin
                                 mem_write_en <= 1;
-                                memory_write_addr <= immediate;
+                                memory_write_addr <= {8'h00, immediate};
                                 memory_write_data <= registers[rd];
                                 PC <= PC + 1;
                                 CPU_STATE <= CPU_FETCH;
 
                             end
+                            LDMW: begin
+                                mem_read_en <= 1;
+                                memory_read_addr <= (registers[rsH] << 8 | registers[rs]);
+                                CPU_STATE <= CPU_MEMORY_LOAD_REG;
+                            end
+                            STRW: begin
+                                mem_write_en <= 1;
+                                memory_write_addr <= (registers[rsH] << 8 | registers[rs]);
+                                memory_write_data <= registers[rd];
+                                PC <= PC + 1;
+                                CPU_STATE <= CPU_FETCH;
+                            end
                             LDID: begin
                                 mem_read_en <= 1;
-                                memory_read_addr <= registers[rs];
+                                memory_read_addr <= {8'h00, registers[rs]};
                                 CPU_STATE <= CPU_MEMORY_LOAD_REG;
 
                             end
                             STRID:begin
                                 mem_write_en <= 1;
-                                memory_write_addr <= registers[rs];
+                                memory_write_addr <= {8'h00, registers[rs]};
                                 memory_write_data <= registers[rd];
                                 PC <= PC + 1;
                                 CPU_STATE <= CPU_FETCH;
 
                             end
-                            ADD: begin                                
+                            ADD: begin
                                 result = registers[rd] + registers[rs];
                                 registers[rd] <= result[7:0];
-                                if (result[9:8] != 0) 
+                                if (result[9:8] != 0)
                                     overflow_flag <= 1;
-                                
+
                                 PC <= PC + 1;
                                 CPU_STATE <= CPU_FETCH;
 
@@ -195,12 +212,12 @@ module top(
 
                             end
                             MUL: begin
-                                
+
                                 result = registers[rd] * registers[rs];
                                 registers[rd] <= result[7:0];
                                 if (result[15:8] != 0)
                                     overflow_flag <= 1;
-                            
+
                                 PC <= PC + 1;
                                 CPU_STATE <= CPU_FETCH;
                             end
