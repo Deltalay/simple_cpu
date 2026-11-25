@@ -18,5 +18,10 @@ module uart_mod (
     input uart_rx,
     output uart_tx
 );
-
+    wire cs_ram;
+    wire cs_uart;
+    wire cs_gpio;
+    wire [7:0] ram_rdata;
+    wire [7:0] uart_rdata;
+    wire [7:0] gpio_rdata;
 endmodule
