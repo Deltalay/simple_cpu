@@ -1,38 +1,43 @@
-module top(
+module top (
     input clk,
     input rst,
+    input boot,
     output [5:0] led
 );
     reg zero_flag = 0;
     reg negative_flag = 0;
     reg overflow_flag = 0;
 
-    reg[7:0] registers [0:3];
+    reg [7:0] registers[0:3];
     localparam PROGRAM_SIZE = 256;
     localparam MEMORY_SIZE = 128;
     localparam STACK_SIZE = 64;
-    reg[7:0] STACK[0:STACK_SIZE];
+    reg [7:0] STACK[0:STACK_SIZE];
     reg [6:0] SP;
-    localparam CPU_FETCH           = 2'b00;
-    localparam CPU_FETCH_WAIT      = 2'b01;
+    localparam CPU_FETCH = 2'b00;
+    localparam CPU_FETCH_WAIT = 2'b01;
     localparam CPU_MEMORY_LOAD_REG = 2'b10;
-    localparam CPU_EXECUTE         = 2'b11;
+    localparam CPU_EXECUTE = 2'b11;
 
     reg [1:0] CPU_STATE = CPU_FETCH;
     reg rst_sync_0 = 1'b1;
     reg rst_sync_1 = 1'b1;
-    reg rst_prev   = 1'b1;
+    reg rst_prev = 1'b1;
     wire rst_pressed = rst_prev && !rst_sync_1;
+    reg boot_sync_0 = 1'b1;
+    reg boot_sync_1 = 1'b1;
+    reg boot_prev = 1'b1;
+    wire boot_pressed = boot_prev && !boot_sync_1;
     reg [15:0] instruction;
     reg [7:0] PC = 0;
     wire [7:0] r_addr = PC;
-    reg[15:0] r_data;
+    reg [15:0] r_data;
     program_memory #(
-    	.DEPTH(PROGRAM_SIZE)
-        ) programs (
-    	.clk   (clk),
-    	.r_addr(r_addr),
-    	.r_data(r_data)
+        .DEPTH(PROGRAM_SIZE)
+    ) programs (
+        .clk   (clk),
+        .r_addr(r_addr),
+        .r_data(r_data)
     );
     reg mem_write_en = 1;
     reg mem_read_en = 1;
@@ -96,24 +101,29 @@ module top(
 
     reg [15:0] result = 0;
 
-    reg[3:0] clockCounter = 0;
-    localparam [3:0]clock = 4;
+    reg [ 3:0] clockCounter = 0;
+    localparam [3:0] clock = 4;
     s_memory #(
-    	.DEPTH(MEMORY_SIZE)
-        ) memory (
-    	.clk     (clk),
-    	.write_en(mem_write_en),
-    	.read_en (mem_read_en),
-    	.w_addr  (memory_write_addr),
-    	.r_addr  (memory_read_addr),
-    	.w_data  (memory_write_data),
-    	.r_data  (memory_read_data),
+        .DEPTH(MEMORY_SIZE)
+    ) memory (
+        .clk     (clk),
+        .write_en(mem_write_en),
+        .read_en (mem_read_en),
+        .w_addr  (memory_write_addr),
+        .r_addr  (memory_read_addr),
+        .w_data  (memory_write_data),
+        .r_data  (memory_read_data),
         .led_byte(led_direct)
     );
     always @(posedge clk) begin
         rst_sync_0 <= rst;
         rst_sync_1 <= rst_sync_0;
         rst_prev   <= rst_sync_1;
+    end
+    always @(posedge clk) begin
+        boot_sync_0 <= boot;
+        boot_sync_1 <= boot_sync_0;
+        boot_prev   <= boot_sync_1;
     end
     always @(posedge clk) begin
         if (rst_pressed == 1'b1) begin
@@ -123,12 +133,11 @@ module top(
             registers[2] <= 0;
             registers[3] <= 0;
             zero_flag <= 0;
-            negative_flag<= 0;
+            negative_flag <= 0;
             SP <= 0;
-            overflow_flag<=0;
+            overflow_flag <= 0;
             CPU_STATE <= CPU_FETCH;
-        end
-        else begin
+        end else begin
             if (clockCounter == clock) begin
                 case (CPU_STATE)
                     CPU_FETCH: begin
@@ -138,7 +147,7 @@ module top(
                     end
                     CPU_FETCH_WAIT: begin
                         instruction <= r_data;
-                        CPU_STATE <= CPU_EXECUTE;
+                        CPU_STATE   <= CPU_EXECUTE;
                     end
                     CPU_MEMORY_LOAD_REG: begin
                         registers[rd] <= memory_read_data;
@@ -184,7 +193,7 @@ module top(
                                 CPU_STATE <= CPU_MEMORY_LOAD_REG;
 
                             end
-                            STRID:begin
+                            STRID: begin
                                 mem_write_en <= 1;
                                 memory_write_addr <= {8'h00, registers[rs]};
                                 memory_write_data <= registers[rd];
@@ -195,8 +204,7 @@ module top(
                             ADD: begin
                                 result = registers[rd] + registers[rs];
                                 registers[rd] <= result[7:0];
-                                if (result[9:8] != 0)
-                                    overflow_flag <= 1;
+                                if (result[9:8] != 0) overflow_flag <= 1;
 
                                 PC <= PC + 1;
                                 CPU_STATE <= CPU_FETCH;
@@ -215,8 +223,7 @@ module top(
 
                                 result = registers[rd] * registers[rs];
                                 registers[rd] <= result[7:0];
-                                if (result[15:8] != 0)
-                                    overflow_flag <= 1;
+                                if (result[15:8] != 0) overflow_flag <= 1;
 
                                 PC <= PC + 1;
                                 CPU_STATE <= CPU_FETCH;
@@ -344,7 +351,7 @@ module top(
                             CALL: begin
                                 STACK[SP] <= PC + 1;
                                 SP <= SP + 1;
-                                PC <=immediate;
+                                PC <= immediate;
                                 CPU_STATE <= CPU_FETCH;
                             end
                             RET: begin
@@ -365,8 +372,8 @@ module top(
                                 CPU_STATE <= CPU_FETCH;
                             end
                             default: begin
-                            PC <= PC + 1;
-                            CPU_STATE <= CPU_FETCH;
+                                PC <= PC + 1;
+                                CPU_STATE <= CPU_FETCH;
 
                             end
                         endcase
